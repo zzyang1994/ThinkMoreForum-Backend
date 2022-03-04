@@ -37,6 +37,7 @@ services:
       SSL_ENABLE: 'true'
       ENABLE_SWAGGER: 'true'
     restart: unless-stopped
+    network_mode: "host"
     depends_on:
       - db
       - oss
