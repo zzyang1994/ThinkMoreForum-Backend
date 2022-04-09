@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>JwtCheckFilter.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">forum</a> &gt; <a href="index.source.html" class="el_package">com.thinkmore.forum.filter</a> &gt; <span class="el_source">JwtCheckFilter.java</span></div><h1>JwtCheckFilter.java</h1><pre class="source lang-java linenums">package com.thinkmore.forum.filter;
+
+import com.thinkmore.forum.configuration.SecurityConfig;
+import com.thinkmore.forum.configuration.StaticConfig;
+import com.thinkmore.forum.entity.JwtUser;
+import com.thinkmore.forum.service.JwtRouterService;
+import com.thinkmore.forum.util.Util;
+
+import io.jsonwebtoken.*;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.filter.OncePerRequestFilter;
+
+import javax.servlet.FilterChain;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import java.io.IOException;
+import java.util.ArrayList;
+
+<span class="nc" id="L28">@Slf4j</span>
+<span class="nc" id="L29">@RequiredArgsConstructor</span>
+public class JwtCheckFilter extends OncePerRequestFilter {
+    private final JwtRouterService jwtRouterService;
+
+    @Override
+    protected void doFilterInternal(HttpServletRequest request, @NotNull HttpServletResponse response, @NotNull FilterChain filterChain) throws ServletException, IOException {
+<span class="nc" id="L35">        String authorizationHeader = request.getHeader(&quot;Authorization&quot;);</span>
+<span class="nc bnc" id="L36" title="All 4 branches missed.">        if (stringIsNullOrEmpty(authorizationHeader) || !authorizationHeader.startsWith(StaticConfig.JwtPrefix)) {</span>
+<span class="nc" id="L37">            filterChain.doFilter(request, response);</span>
+<span class="nc" id="L38">            return;</span>
+        }
+
+<span class="nc" id="L41">        String fakeJwt = authorizationHeader.replace(StaticConfig.JwtPrefix, &quot;&quot;);</span>
+<span class="nc" id="L42">        String realJwt = jwtRouterService.getRealJwt(fakeJwt);</span>
+<span class="nc bnc" id="L43" title="All 2 branches missed.">        if (stringIsNullOrEmpty(realJwt)) {</span>
+<span class="nc" id="L44">            response.setStatus(HttpStatus.METHOD_NOT_ALLOWED.value());</span>
+<span class="nc" id="L45">            log.info(&quot;Cannot find fakeJwt: {}&quot;, fakeJwt);</span>
+<span class="nc" id="L46">            return;</span>
+        }
+
+        try {
+            //check jwt
+<span class="nc" id="L51">            Jws&lt;Claims&gt; claimsJws = Jwts.parserBuilder()</span>
+<span class="nc" id="L52">                                        .setSigningKey(SecurityConfig.secretKey)</span>
+<span class="nc" id="L53">                                        .build()</span>
+<span class="nc" id="L54">                                        .parseClaimsJws(realJwt);</span>
+<span class="nc" id="L55">            Claims body = claimsJws.getBody();</span>
+
+<span class="nc" id="L57">            ArrayList&lt;String&gt; principal = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L58">            principal.add(body.getId());</span>
+<span class="nc" id="L59">            principal.add(body.getSubject());</span>
+<span class="nc" id="L60">            principal.add(body.getAudience());</span>
+
+<span class="nc" id="L62">            Authentication authentication = new UsernamePasswordAuthenticationToken(</span>
+                    principal,
+                    null,
+                    null
+            );
+<span class="nc" id="L67">            SecurityContextHolder.getContext().setAuthentication(authentication);</span>
+
+            //update jwt
+<span class="nc" id="L70">            JwtUser jwtUser = new JwtUser(principal);</span>
+<span class="nc" id="L71">            String newJwt = Util.generateJwt(jwtUser);</span>
+<span class="nc" id="L72">            response.addHeader(HttpHeaders.AUTHORIZATION, StaticConfig.JwtPrefix + jwtRouterService.getFakeJwt(newJwt));</span>
+<span class="nc" id="L73">        } catch (ExpiredJwtException e) {</span>
+<span class="nc" id="L74">            response.setStatus(HttpStatus.UNAUTHORIZED.value());</span>
+<span class="nc" id="L75">            log.info(String.valueOf(e));</span>
+<span class="nc" id="L76">            return;</span>
+<span class="nc" id="L77">        }</span>
+
+<span class="nc" id="L79">        filterChain.doFilter(request, response);</span>
+<span class="nc" id="L80">    }</span>
+
+    static boolean stringIsNullOrEmpty(String string) {
+<span class="nc bnc" id="L83" title="All 4 branches missed.">        return string == null || string.isEmpty();</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

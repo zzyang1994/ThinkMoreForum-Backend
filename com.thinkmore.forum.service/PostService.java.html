@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>PostService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">forum</a> &gt; <a href="index.source.html" class="el_package">com.thinkmore.forum.service</a> &gt; <span class="el_source">PostService.java</span></div><h1>PostService.java</h1><pre class="source lang-java linenums">package com.thinkmore.forum.service;
+
+import com.thinkmore.forum.dto.comment.CommentGetDto;
+import com.thinkmore.forum.dto.post.*;
+import com.thinkmore.forum.entity.Category;
+import com.thinkmore.forum.entity.Comment;
+import com.thinkmore.forum.entity.Post;
+import com.thinkmore.forum.entity.Users;
+import com.thinkmore.forum.exception.UserNotFoundException;
+import com.thinkmore.forum.mapper.CommentMapper;
+import com.thinkmore.forum.mapper.PostMapper;
+import com.thinkmore.forum.repository.CategoryRepository;
+import com.thinkmore.forum.repository.CommentRepository;
+import com.thinkmore.forum.repository.PostRepository;
+import com.thinkmore.forum.repository.UsersRepository;
+
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.Random;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
+@Service
+<span class="nc" id="L29">@RequiredArgsConstructor</span>
+public class PostService {
+
+    private final PostRepository postRepository;
+    private final PostMapper postMapper;
+    private final UsersRepository usersRepository;
+    private final CategoryRepository categoryRepository;
+    private final CategoryService categoryService;
+    private final CommentRepository commentRepository;
+    private final CommentMapper commentMapper;
+
+    @Transactional
+    public PostGetDto getPostById(UUID postId) throws Exception {
+<span class="nc" id="L42">        Optional&lt;Post&gt; targetPost = postRepository.findById(postId);</span>
+        PostGetDto targetPostGetDto;
+<span class="nc bnc" id="L44" title="All 2 branches missed.">        if (targetPost.isPresent()) {</span>
+<span class="nc" id="L45">            targetPostGetDto = postMapper.fromEntity(targetPost.get());</span>
+        } else {
+<span class="nc" id="L47">            throw new Exception(&quot;Couldn't find the post with provided ID&quot;);</span>
+        }
+<span class="nc" id="L49">        return targetPostGetDto;</span>
+    }
+
+    @Transactional
+    public PostCommentGetDto getMaxCountCommentPost(Pageable pageable) {
+<span class="nc" id="L54">        List&lt;Post&gt; posts = postRepository.findByOrderByCommentCountDesc(pageable);</span>
+
+<span class="nc bnc" id="L56" title="All 2 branches missed.">        if (posts.size() &lt; 3) {</span>
+<span class="nc" id="L57">            return null;</span>
+        }
+
+<span class="nc" id="L60">        Random random = new Random();</span>
+<span class="nc" id="L61">        int i = random.nextInt(3);</span>
+
+<span class="nc" id="L63">        List&lt;Comment&gt; comments = commentRepository.findByPost_IdOrderByCreateTimestampAsc(posts.get(i).getId());</span>
+<span class="nc" id="L64">        PostCommentGetDto postCommentGetDto = new PostCommentGetDto();</span>
+<span class="nc" id="L65">        List&lt;CommentGetDto&gt; commentGetDtoList = comments.stream().map(commentMapper::fromEntity).collect(Collectors.toList());</span>
+
+<span class="nc" id="L67">        postCommentGetDto.setComments(commentGetDtoList);</span>
+<span class="nc" id="L68">        postCommentGetDto.setPost(postMapper.fromEntity(posts.get(i)));</span>
+<span class="nc" id="L69">        return postCommentGetDto;</span>
+    }
+
+    @Transactional
+    public String postPost
+            (UUID
+                     userId, PostPostDto
+                     postPostDto) {
+
+<span class="nc" id="L78">        Post post = postMapper.toEntity(postPostDto);</span>
+<span class="nc" id="L79">        post.setPostUsers(usersRepository.getById(userId));</span>
+<span class="nc" id="L80">        post.setCategory(categoryRepository.findByTitle(postPostDto.getCategoryTitle()).get());</span>
+
+<span class="nc" id="L82">        postRepository.save(post);</span>
+
+<span class="nc" id="L84">        Category categoryToUpdate = categoryRepository.findByTitle(post.getCategory().getTitle()).get();</span>
+<span class="nc" id="L85">        int newPostCount = (int) postRepository.countByCategory_IdAndVisibilityIsTrue(categoryToUpdate.getId());</span>
+<span class="nc" id="L86">        categoryToUpdate.setPostCount(newPostCount);</span>
+<span class="nc" id="L87">        categoryRepository.save(categoryToUpdate);</span>
+
+<span class="nc" id="L89">        categoryService.updateParticipant(post.getCategory().getId());</span>
+
+<span class="nc" id="L91">        return post.getId().toString();</span>
+    }
+
+    @Transactional
+    public boolean editPost (UUID postId, UUID userId, PostMiniPutDto postMiniPutDto) {
+<span class="nc" id="L96">        Post currentPost = postRepository.findById(postId).get();</span>
+<span class="nc" id="L97">        Users requestUser = usersRepository.findById(userId).get();</span>
+<span class="nc bnc" id="L98" title="All 2 branches missed.">        if (!requestUser.getRole().getRoleName().equals(&quot;admin&quot;)) {</span>
+<span class="nc bnc" id="L99" title="All 2 branches missed.">            if (!currentPost.getPostUsers().getId().equals(userId)) {</span>
+<span class="nc" id="L100">                return false;</span>
+            }
+        }
+
+<span class="nc" id="L104">        currentPost.setHeadImgUrl(postMiniPutDto.getHeadImgUrl());</span>
+<span class="nc" id="L105">        currentPost.setTitle(postMiniPutDto.getTitle());</span>
+<span class="nc" id="L106">        currentPost.setContext(postMiniPutDto.getContext());</span>
+<span class="nc" id="L107">        postRepository.save(currentPost);</span>
+
+<span class="nc" id="L109">        Category categoryToUpdate = categoryRepository.findById(currentPost.getCategory().getId()).get();</span>
+<span class="nc" id="L110">        int newPostCount = (int) postRepository.countByCategory_IdAndVisibilityIsTrue(categoryToUpdate.getId());</span>
+<span class="nc" id="L111">        categoryToUpdate.setPostCount(newPostCount);</span>
+<span class="nc" id="L112">        categoryRepository.save(categoryToUpdate);</span>
+
+<span class="nc" id="L114">        return true;</span>
+    }
+
+    @Transactional
+    public List&lt;PostMiniGetDto&gt; getAllPostsCoreInfo
+            () {
+<span class="nc" id="L120">        return postRepository.findAll().stream()</span>
+<span class="nc" id="L121">                             .map(postMapper::entityToMiniDto)</span>
+<span class="nc" id="L122">                             .collect(Collectors.toList());</span>
+    }
+
+    @Transactional
+    public List&lt;PostGetDto&gt; getPostByTitleContainingString
+            (String
+                     string) {
+<span class="nc" id="L129">        return postRepository.findByTitleContainingIgnoreCase(string).stream()</span>
+<span class="nc" id="L130">                             .map(postMapper::fromEntity)</span>
+<span class="nc" id="L131">                             .collect(Collectors.toList());</span>
+    }
+
+    @Transactional
+    public List&lt;PostGetDto&gt; getPostsByPostUsersName
+            (String
+                     username) {
+<span class="nc" id="L138">        Users user = usersRepository.findByUsername(username)</span>
+<span class="nc" id="L139">                                    .orElseThrow(() -&gt; new UserNotFoundException(&quot;Invalid UserName&quot;));</span>
+<span class="nc" id="L140">        return postRepository.findByPostUsersId(user.getId()).stream()</span>
+<span class="nc" id="L141">                             .map(postMapper::fromEntity)</span>
+<span class="nc" id="L142">                             .collect(Collectors.toList());</span>
+    }
+
+    @Transactional
+    public long getCountOfVisiblePostsByCategoryId
+            (UUID
+                     categoryId) {
+<span class="nc" id="L149">        return postRepository.countByCategory_IdAndVisibilityIsTrue(categoryId);</span>
+    }
+
+    @Transactional
+    public List&lt;PostGetDto&gt; getVisiblePostsByCategoryId
+            (UUID
+                     categoryId, Pageable
+                     pageable) {
+<span class="nc" id="L157">        return postRepository.findByCategory_IdAndVisibilityIsTrue(categoryId, pageable).stream()</span>
+<span class="nc" id="L158">                             .map(postMapper::fromEntity)</span>
+<span class="nc" id="L159">                             .collect(Collectors.toList());</span>
+    }
+
+    @Transactional
+    public Boolean changePostVisibility
+            (UUID
+                     postId, UUID
+                     userId) {
+<span class="nc" id="L167">        Post oldPost = postRepository.findById(postId).get();</span>
+<span class="nc" id="L168">        Users requestInitiator = usersRepository.findById(userId).get();</span>
+<span class="nc bnc" id="L169" title="All 2 branches missed.">        if (!requestInitiator.getRole().getRoleName().equals(&quot;admin&quot;)) {</span>
+<span class="nc bnc" id="L170" title="All 2 branches missed.">            if (!oldPost.getPostUsers().getId().equals(userId)) {</span>
+<span class="nc" id="L171">                return false;</span>
+            }
+        }
+
+<span class="nc bnc" id="L175" title="All 2 branches missed.">        oldPost.setVisibility(!oldPost.getVisibility());</span>
+<span class="nc" id="L176">        postRepository.save(oldPost);</span>
+
+<span class="nc" id="L178">        Category categoryToUpdate = categoryRepository.findById(oldPost.getCategory().getId()).get();</span>
+<span class="nc" id="L179">        int newPostCount = (int) postRepository.countByCategory_IdAndVisibilityIsTrue(categoryToUpdate.getId());</span>
+<span class="nc" id="L180">        categoryToUpdate.setPostCount(newPostCount);</span>
+<span class="nc" id="L181">        categoryRepository.save(categoryToUpdate);</span>
+
+<span class="nc" id="L183">        return true;</span>
+    }
+
+    @Transactional
+    public void updateViewCount
+            (UUID
+                     postId) {
+<span class="nc" id="L190">        Post post = postRepository.findById(postId).get();</span>
+<span class="nc" id="L191">        post.setViewCount(post.getViewCount() + 1);</span>
+<span class="nc" id="L192">        postRepository.save(post);</span>
+
+<span class="nc" id="L194">        Category category = categoryRepository.findById(post.getCategory().getId()).get();</span>
+<span class="nc" id="L195">        List&lt;Post&gt; posts = postRepository.findByCategory_IdAndVisibilityIsTrue(category.getId());</span>
+<span class="nc" id="L196">        category.setViewCount(posts.stream().mapToInt(Post::getViewCount).sum());</span>
+<span class="nc" id="L197">        categoryRepository.save(category);</span>
+<span class="nc" id="L198">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

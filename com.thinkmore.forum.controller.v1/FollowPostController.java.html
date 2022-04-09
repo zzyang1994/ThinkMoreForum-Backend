@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>FollowPostController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">forum</a> &gt; <a href="index.source.html" class="el_package">com.thinkmore.forum.controller.v1</a> &gt; <span class="el_source">FollowPostController.java</span></div><h1>FollowPostController.java</h1><pre class="source lang-java linenums">package com.thinkmore.forum.controller.v1;
+
+import com.thinkmore.forum.dto.followPost.FollowPostGetDto;
+import com.thinkmore.forum.service.FollowPostService;
+import com.thinkmore.forum.util.Util;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.UUID;
+
+@RestController
+@RequestMapping(path = &quot;/v1/post/follows&quot;)
+<span class="nc" id="L15">@RequiredArgsConstructor</span>
+public class FollowPostController {
+    private final FollowPostService followPostService;
+
+    @GetMapping(path = &quot;/find_all_by_user_id&quot;)
+    public ResponseEntity&lt;List&lt;FollowPostGetDto&gt;&gt; findAllByUserId() {
+<span class="nc" id="L21">        UUID userId = UUID.fromString(Util.getJwtContext().get(0));</span>
+<span class="nc" id="L22">        List&lt;FollowPostGetDto&gt; followPostList = followPostService.getAllFollowPostsByUserId(userId);</span>
+<span class="nc" id="L23">        return ResponseEntity.ok(followPostList);</span>
+    }
+
+    @GetMapping(path=&quot;/check_user_following_state/{post_id}&quot;)
+    public ResponseEntity&lt;Boolean&gt; checkUserFollowingState(@PathVariable String post_id) {
+<span class="nc" id="L28">        UUID userId = UUID.fromString(Util.getJwtContext().get(0));</span>
+<span class="nc" id="L29">        UUID postId = UUID.fromString(post_id);</span>
+<span class="nc" id="L30">        Boolean userIsFollowingPost = followPostService.checkUserFollowingState(postId, userId);</span>
+<span class="nc" id="L31">        return ResponseEntity.ok(userIsFollowingPost);</span>
+    }
+
+    @PostMapping(path = &quot;/user_follow_post/{post_id}&quot;)
+    public ResponseEntity&lt;String&gt; userFollowPost(@PathVariable String post_id) {
+<span class="nc" id="L36">        UUID postId = UUID.fromString(post_id);</span>
+<span class="nc" id="L37">        UUID userId = UUID.fromString(Util.getJwtContext().get(0));</span>
+<span class="nc" id="L38">        followPostService.postFollowPostToUser(postId, userId);</span>
+<span class="nc" id="L39">        return ResponseEntity.ok(String.format(&quot;successfully followed post with id %s&quot;, post_id));</span>
+    }
+
+    @DeleteMapping(path = &quot;/user_unfollow_post/{post_id}&quot;)
+    public ResponseEntity&lt;String&gt; userUnfollowPost(@PathVariable String post_id) {
+<span class="nc" id="L44">        UUID postId = UUID.fromString(post_id);</span>
+<span class="nc" id="L45">        UUID userId = UUID.fromString(Util.getJwtContext().get(0));</span>
+<span class="nc" id="L46">        return ResponseEntity.ok(followPostService.userUnfollowPost(postId, userId));</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

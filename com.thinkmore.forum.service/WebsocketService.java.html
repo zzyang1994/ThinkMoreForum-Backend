@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>WebsocketService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">forum</a> &gt; <a href="index.source.html" class="el_package">com.thinkmore.forum.service</a> &gt; <span class="el_source">WebsocketService.java</span></div><h1>WebsocketService.java</h1><pre class="source lang-java linenums">package com.thinkmore.forum.service;
+
+import com.thinkmore.forum.entity.redis.OnlineUser;
+import com.thinkmore.forum.entity.websocket.OnlineMessage;
+import com.thinkmore.forum.entity.websocket.ReminderMessage;
+import com.thinkmore.forum.repository.OnlineUsersRepository;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.socket.messaging.SessionDisconnectEvent;
+
+import java.util.*;
+
+<span class="nc" id="L17">@Slf4j</span>
+@Service
+<span class="nc" id="L19">@RequiredArgsConstructor</span>
+public class WebsocketService {
+    private final OnlineUsersRepository onlineUsersRepository;
+    private final SimpMessagingTemplate simpMessagingTemplate;
+
+    @Transactional
+    public List&lt;String&gt; getOnlineUser() {
+<span class="nc" id="L26">        List&lt;OnlineUser&gt; onlineUserList = onlineUsersRepository.findAll();</span>
+<span class="nc" id="L27">        Set&lt;String&gt; onlineUserSet = new HashSet&lt;&gt;();</span>
+<span class="nc bnc" id="L28" title="All 2 branches missed.">        if (onlineUserList.size() &gt; 0) {</span>
+<span class="nc" id="L29">            onlineUserList.forEach(onlineUser -&gt; onlineUserSet.add(onlineUser.getUsername()));</span>
+<span class="nc" id="L30">            return new ArrayList&lt;&gt;(onlineUserSet);</span>
+        } else {
+<span class="nc" id="L32">            return new ArrayList&lt;&gt;();</span>
+        }
+    }
+
+    @Transactional
+    public List&lt;String&gt; signOnline(String sessionId, OnlineMessage onlineMsg) {
+
+<span class="nc bnc" id="L39" title="All 2 branches missed.">        if (onlineMsg.getUsername().length() &gt; 0) {</span>
+<span class="nc" id="L40">            OnlineUser onlineUser = new OnlineUser();</span>
+<span class="nc" id="L41">            onlineUser.setId(sessionId);</span>
+<span class="nc" id="L42">            onlineUser.setUsername(onlineMsg.getUsername());</span>
+<span class="nc" id="L43">            onlineUsersRepository.save(onlineUser);</span>
+        }
+
+<span class="nc" id="L46">        return getOnlineUser();</span>
+    }
+
+    @Transactional
+    public ReminderMessage forwardReminder(ReminderMessage reminder) {
+<span class="nc" id="L51">        simpMessagingTemplate.convertAndSendToUser(reminder.getRecipient(), &quot;/reminded&quot;, reminder);</span>
+<span class="nc" id="L52">        return reminder;</span>
+    }
+
+    @Transactional
+    public void signOffline(SessionDisconnectEvent event) {
+<span class="nc" id="L57">        onlineUsersRepository.findById(event.getSessionId()).ifPresent(onlineUsersRepository::delete);</span>
+
+<span class="nc" id="L59">        this.simpMessagingTemplate.convertAndSend(&quot;/hall/greetings&quot;, getOnlineUser());</span>
+<span class="nc" id="L60">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

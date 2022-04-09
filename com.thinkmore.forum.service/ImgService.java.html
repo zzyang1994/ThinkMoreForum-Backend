@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ImgService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">forum</a> &gt; <a href="index.source.html" class="el_package">com.thinkmore.forum.service</a> &gt; <span class="el_source">ImgService.java</span></div><h1>ImgService.java</h1><pre class="source lang-java linenums">package com.thinkmore.forum.service;
+
+import com.thinkmore.forum.configuration.StaticConfig;
+import com.thinkmore.forum.entity.Img;
+import com.thinkmore.forum.repository.ImgRepository;
+import io.minio.*;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.codec.digest.DigestUtils;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.ByteArrayInputStream;
+import java.util.*;
+
+<span class="nc" id="L18">@Slf4j</span>
+@Service
+<span class="nc" id="L20">@RequiredArgsConstructor</span>
+public class ImgService {
+    private final ImgRepository imgRepository;
+    private final MinioClient minioClient;
+
+    @Value(&quot;${minio.url}&quot;)
+    private String minioUrl;
+
+    @Transactional
+    public Img upload(MultipartFile img) throws Exception {
+<span class="nc" id="L30">        byte[] imgBytes = img.getBytes();</span>
+<span class="nc" id="L31">        String md5 = DigestUtils.md5Hex(imgBytes);</span>
+
+        // check
+<span class="nc" id="L34">        Optional&lt;Img&gt; image = imgRepository.findByMd5(md5);</span>
+<span class="nc bnc" id="L35" title="All 2 branches missed.">        if (image.isPresent()) {</span>
+<span class="nc" id="L36">            return image.get();</span>
+        }
+
+        // put
+<span class="nc" id="L40">        String fileName = img.getOriginalFilename();</span>
+<span class="nc bnc" id="L41" title="All 2 branches missed.">        if (fileName == null) {</span>
+<span class="nc" id="L42">            throw new RuntimeException();</span>
+        }
+<span class="nc bnc" id="L44" title="All 2 branches missed.">        fileName = md5 + (fileName.endsWith(&quot;.png&quot;) ? &quot;.png&quot; : &quot;.jpg&quot;);</span>
+
+<span class="nc" id="L46">        minioClient.putObject(</span>
+<span class="nc" id="L47">                PutObjectArgs.builder()</span>
+<span class="nc" id="L48">                        .bucket(StaticConfig.BucketName)</span>
+<span class="nc" id="L49">                        .object(fileName)</span>
+<span class="nc" id="L50">                        .stream(new ByteArrayInputStream(imgBytes), imgBytes.length, -1)</span>
+<span class="nc bnc" id="L51" title="All 2 branches missed.">                        .contentType(fileName.endsWith(&quot;.png&quot;) ? &quot;image/png&quot; : &quot;image/jpeg&quot;)</span>
+<span class="nc" id="L52">                        .build());</span>
+
+        // set
+<span class="nc" id="L55">        Img theImg = new Img();</span>
+<span class="nc" id="L56">        theImg.setUrl(minioUrl + &quot;/&quot; + StaticConfig.BucketName + &quot;/&quot; + fileName);</span>
+<span class="nc" id="L57">        theImg.setMd5(md5);</span>
+<span class="nc" id="L58">        imgRepository.save(theImg);</span>
+
+<span class="nc" id="L60">        return theImg;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

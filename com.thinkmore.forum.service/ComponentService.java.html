@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ComponentService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">forum</a> &gt; <a href="index.source.html" class="el_package">com.thinkmore.forum.service</a> &gt; <span class="el_source">ComponentService.java</span></div><h1>ComponentService.java</h1><pre class="source lang-java linenums">package com.thinkmore.forum.service;
+
+import com.thinkmore.forum.dto.component.ComponentGetDto;
+import com.thinkmore.forum.dto.component.ComponentPostDto;
+import com.thinkmore.forum.dto.component.ComponentPutDto;
+import com.thinkmore.forum.entity.Component;
+import com.thinkmore.forum.mapper.ComponentMapper;
+import com.thinkmore.forum.repository.ComponentRepository;
+
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Optional;
+
+@Service
+<span class="nc" id="L17">@RequiredArgsConstructor</span>
+public class ComponentService {
+    private final ComponentRepository componentRepository;
+    private final ComponentMapper componentMapper;
+
+    @Transactional
+    public ComponentGetDto getComponent(String name) throws Exception {
+<span class="nc" id="L24">        Optional&lt;Component&gt; component = componentRepository.findByName(name);</span>
+<span class="nc" id="L25">        return componentMapper.fromEntity(component.orElseThrow(() -&gt; new Exception(&quot;Component not found&quot;)));</span>
+    }
+
+    @Transactional
+    public ComponentGetDto postComponent(ComponentPostDto componentPostDto) {
+<span class="nc" id="L30">        Component component = componentMapper.toEntity(componentPostDto);</span>
+<span class="nc" id="L31">        componentRepository.save(component);</span>
+<span class="nc" id="L32">        return componentMapper.fromEntity(component);</span>
+    }
+
+    @Transactional
+    public ComponentGetDto putComponent(ComponentPutDto componentPutDto) {
+<span class="nc" id="L37">        Component component = componentMapper.toEntity(componentPutDto);</span>
+<span class="nc" id="L38">        componentRepository.save(component);</span>
+<span class="nc" id="L39">        return componentMapper.fromEntity(component);</span>
+    }
+
+    @Transactional
+    public Boolean deleteComponent(String name) {
+<span class="nc" id="L44">        Optional&lt;Component&gt; component = componentRepository.findByName(name);</span>
+<span class="nc" id="L45">        component.ifPresent(componentRepository::delete);</span>
+<span class="nc" id="L46">        return true;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

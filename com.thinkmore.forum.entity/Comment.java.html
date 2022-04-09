@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Comment.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">forum</a> &gt; <a href="index.source.html" class="el_package">com.thinkmore.forum.entity</a> &gt; <span class="el_source">Comment.java</span></div><h1>Comment.java</h1><pre class="source lang-java linenums">package com.thinkmore.forum.entity;
+
+import lombok.Getter;
+import lombok.Setter;
+import org.hibernate.annotations.DynamicInsert;
+import org.hibernate.annotations.DynamicUpdate;
+
+import javax.persistence.*;
+import java.time.OffsetDateTime;
+import java.util.UUID;
+
+@Entity
+@Getter
+<span class="nc" id="L14">@Setter</span>
+@DynamicUpdate
+@DynamicInsert
+@Table(name = &quot;comment&quot;)
+<span class="nc" id="L18">public class Comment {</span>
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    @Column(name = &quot;id&quot;, nullable = false)
+<span class="nc" id="L22">    private UUID id;</span>
+
+    @ManyToOne(optional = false)
+    @JoinColumn(name = &quot;comment_users_id&quot;, nullable = false)
+<span class="nc" id="L26">    private Users commentUsers;</span>
+
+    @ManyToOne
+    @JoinColumn(name = &quot;mention_users_id&quot;)
+<span class="nc" id="L30">    private Users mentionUsers;</span>
+
+    @ManyToOne(optional = false)
+    @JoinColumn(name = &quot;post_id&quot;, nullable = false)
+<span class="nc" id="L34">    private Post post;</span>
+
+    @ManyToOne
+    @JoinColumn(name = &quot;parent_comment_id&quot;)
+<span class="nc" id="L38">    private Comment parentComment;</span>
+
+    @Column(name = &quot;context&quot;, nullable = false, length = 5000)
+<span class="nc" id="L41">    private String context;</span>
+
+    @Column(name = &quot;visibility&quot;)
+<span class="nc" id="L44">    private Boolean visibility;</span>
+
+    @Column(name = &quot;create_timestamp&quot;)
+<span class="nc" id="L47">    private OffsetDateTime createTimestamp;</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

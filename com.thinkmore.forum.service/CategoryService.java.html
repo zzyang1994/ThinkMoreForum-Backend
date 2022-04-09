@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CategoryService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">forum</a> &gt; <a href="index.source.html" class="el_package">com.thinkmore.forum.service</a> &gt; <span class="el_source">CategoryService.java</span></div><h1>CategoryService.java</h1><pre class="source lang-java linenums">package com.thinkmore.forum.service;
+
+import com.thinkmore.forum.dto.category.CategoryGetDto;
+import com.thinkmore.forum.dto.category.CategoryPutDto;
+import com.thinkmore.forum.entity.Category;
+import com.thinkmore.forum.entity.Comment;
+import com.thinkmore.forum.entity.Post;
+import com.thinkmore.forum.entity.Users;
+import com.thinkmore.forum.mapper.CategoryMapper;
+import com.thinkmore.forum.repository.CategoryRepository;
+import com.thinkmore.forum.repository.CommentRepository;
+import com.thinkmore.forum.repository.PostRepository;
+
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.OffsetDateTime;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
+@Service
+<span class="nc" id="L26">@RequiredArgsConstructor</span>
+public class CategoryService {
+
+    private final CategoryRepository categoryRepository;
+    private final CategoryMapper categoryMapper;
+    private final PostRepository postRepository;
+    private final CommentRepository commentRepository;
+
+    @Transactional
+    public List&lt;CategoryGetDto&gt; getAllCategories() {
+<span class="nc" id="L36">        return categoryRepository.findByOrderBySortOrderAsc().stream().map(categoryMapper::fromEntity).collect(Collectors.toList());</span>
+    }
+
+    @Transactional
+    public CategoryGetDto getCategoryByCategoryTitle(String category_title) throws Exception {
+<span class="nc" id="L41">        Optional&lt;Category&gt; targetCategory = categoryRepository.findByTitle(category_title);</span>
+        CategoryGetDto targetCategoryGetDto;
+<span class="nc bnc" id="L43" title="All 2 branches missed.">        if (targetCategory.isPresent()) {</span>
+<span class="nc" id="L44">            targetCategoryGetDto = categoryMapper.fromEntity(targetCategory.get());</span>
+        } else {
+<span class="nc" id="L46">            throw new Exception(&quot;Couldn't find the category with provided ID&quot;);</span>
+        }
+<span class="nc" id="L48">        return targetCategoryGetDto;</span>
+    }
+
+    @Transactional
+    public Boolean putCategory(List&lt;CategoryPutDto&gt; categoryPutDtoList) {
+<span class="nc" id="L53">        List&lt;Category&gt; categoryNewList = categoryPutDtoList.stream().map(categoryMapper::toEntity).collect(Collectors.toList());</span>
+<span class="nc" id="L54">        List&lt;Category&gt; categoryOldList = categoryRepository.findByOrderBySortOrderAsc();</span>
+<span class="nc bnc" id="L55" title="All 2 branches missed.">        for (int i = 0; i &lt; categoryNewList.size(); i++) {</span>
+<span class="nc" id="L56">            categoryNewList.get(i).setSortOrder(i);</span>
+        }
+
+<span class="nc" id="L59">        List&lt;Category&gt; removeList = categoryOldList.stream().filter(category -&gt; {</span>
+<span class="nc bnc" id="L60" title="All 2 branches missed.">            for (Category categoryNew : categoryNewList) {</span>
+<span class="nc bnc" id="L61" title="All 2 branches missed.">                if (categoryNew.getId().equals(category.getId())) {</span>
+<span class="nc" id="L62">                    return false;</span>
+                }
+<span class="nc" id="L64">            }</span>
+<span class="nc" id="L65">            return true;</span>
+<span class="nc" id="L66">        }).collect(Collectors.toList());</span>
+
+<span class="nc" id="L68">        List&lt;Category&gt; addList = categoryNewList.stream().filter(category -&gt; {</span>
+<span class="nc bnc" id="L69" title="All 2 branches missed.">            if (category.getId() != null) {</span>
+<span class="nc" id="L70">                return false;</span>
+            }
+<span class="nc" id="L72">            category.setLastUpdateTimestamp(OffsetDateTime.now());</span>
+<span class="nc" id="L73">            category.setParticipantCount(0);</span>
+<span class="nc" id="L74">            return true;</span>
+<span class="nc" id="L75">        }).collect(Collectors.toList());</span>
+
+<span class="nc" id="L77">        List&lt;Category&gt; updateList = categoryNewList.stream().filter(category -&gt; {</span>
+<span class="nc bnc" id="L78" title="All 2 branches missed.">            if (category.getId() == null) {</span>
+<span class="nc" id="L79">                return false;</span>
+            }
+<span class="nc" id="L81">            category.setLastUpdateTimestamp(OffsetDateTime.now());</span>
+<span class="nc" id="L82">            return true;</span>
+<span class="nc" id="L83">        }).collect(Collectors.toList());</span>
+
+<span class="nc" id="L85">        removeList.forEach(category -&gt;</span>
+<span class="nc" id="L86">                postRepository.findByCategory_Title(category.getTitle())</span>
+<span class="nc" id="L87">                              .forEach(post -&gt; post.setCategory(null)));</span>
+
+<span class="nc" id="L89">        categoryRepository.deleteAll(removeList);</span>
+<span class="nc" id="L90">        categoryRepository.saveAll(updateList);</span>
+<span class="nc" id="L91">        categoryRepository.saveAll(addList);</span>
+<span class="nc" id="L92">        return true;</span>
+    }
+
+    @Transactional
+    public CategoryGetDto putCategoryPinPostById(UUID categoryId, UUID postId) {
+<span class="nc" id="L97">        Category category = categoryRepository.findById(categoryId).get();</span>
+<span class="nc" id="L98">        category.setPinPost(postRepository.findById(postId).get());</span>
+<span class="nc" id="L99">        categoryRepository.save(category);</span>
+<span class="nc" id="L100">        return categoryMapper.fromEntity(category);</span>
+    }
+
+    @Transactional
+    public CategoryGetDto putCategoryPinPostNull(UUID categoryId) {
+<span class="nc" id="L105">        Category category = categoryRepository.findById(categoryId).get();</span>
+<span class="nc" id="L106">        category.setPinPost(null);</span>
+<span class="nc" id="L107">        categoryRepository.save(category);</span>
+<span class="nc" id="L108">        return categoryMapper.fromEntity(category);</span>
+    }
+
+    @Transactional
+    public void updateParticipant(UUID categoryId) {
+<span class="nc" id="L113">        Category category = categoryRepository.findById(categoryId).get();</span>
+<span class="nc" id="L114">        List&lt;Post&gt; postList = postRepository.findByCategory_Title(category.getTitle());</span>
+<span class="nc" id="L115">        List&lt;Comment&gt; commentList = postList.stream().flatMap(post -&gt; commentRepository.findByPost_IdOrderByCreateTimestampAsc(post.getId()).stream()).collect(Collectors.toList());</span>
+<span class="nc" id="L116">        List&lt;Users&gt; usersList = commentList.stream().map(Comment::getCommentUsers).collect(Collectors.toList());</span>
+<span class="nc" id="L117">        usersList.addAll(postList.stream().map(Post::getPostUsers).collect(Collectors.toList()));</span>
+<span class="nc" id="L118">        HashSet&lt;UUID&gt; set = new HashSet&lt;&gt;();</span>
+<span class="nc bnc" id="L119" title="All 2 branches missed.">        for (Users user : usersList) {</span>
+<span class="nc" id="L120">            set.add(user.getId());</span>
+<span class="nc" id="L121">        }</span>
+<span class="nc" id="L122">        category.setParticipantCount(set.size());</span>
+<span class="nc" id="L123">        category.setLastUpdateTimestamp(OffsetDateTime.now());</span>
+<span class="nc" id="L124">        categoryRepository.save(category);</span>
+<span class="nc" id="L125">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

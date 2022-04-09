@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>JwtRouterService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">forum</a> &gt; <a href="index.source.html" class="el_package">com.thinkmore.forum.service</a> &gt; <span class="el_source">JwtRouterService.java</span></div><h1>JwtRouterService.java</h1><pre class="source lang-java linenums">package com.thinkmore.forum.service;
+
+import java.util.Optional;
+
+import com.thinkmore.forum.entity.redis.JwtRouter;
+import com.thinkmore.forum.repository.JwtRouterRepository;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.codec.digest.DigestUtils;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+<span class="nc" id="L14">@Slf4j</span>
+@Service
+<span class="nc" id="L16">@RequiredArgsConstructor</span>
+public class JwtRouterService {
+    private final JwtRouterRepository jwtRouterRepository;
+
+    @Transactional
+    public String getRealJwt(String fakeJwt) {
+<span class="nc" id="L22">        Optional&lt;JwtRouter&gt; jwtRouter = jwtRouterRepository.findById(fakeJwt);</span>
+<span class="nc" id="L23">        return jwtRouter.map(JwtRouter::getRealJwt).orElse(null);</span>
+    }
+
+    @Transactional
+    public String getFakeJwt(String realJwt) {
+<span class="nc" id="L28">        String md5 = DigestUtils.md5Hex(realJwt + Math.random());</span>
+<span class="nc" id="L29">        String fakeJwt = md5 + Math.random();</span>
+
+<span class="nc" id="L31">        JwtRouter jwtRouter = new JwtRouter();</span>
+<span class="nc" id="L32">        jwtRouter.setFakeJwt(fakeJwt);</span>
+<span class="nc" id="L33">        jwtRouter.setRealJwt(realJwt);</span>
+<span class="nc" id="L34">        jwtRouterRepository.save(jwtRouter);</span>
+<span class="nc" id="L35">        return fakeJwt;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

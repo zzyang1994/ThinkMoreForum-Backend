@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>FollowerUsersService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">forum</a> &gt; <a href="index.source.html" class="el_package">com.thinkmore.forum.service</a> &gt; <span class="el_source">FollowerUsersService.java</span></div><h1>FollowerUsersService.java</h1><pre class="source lang-java linenums">package com.thinkmore.forum.service;
+
+import com.thinkmore.forum.dto.followerUsers.FollowerUsersGetDto;
+import com.thinkmore.forum.entity.FollowUser;
+import com.thinkmore.forum.entity.Users;
+import com.thinkmore.forum.exception.UserNotFoundException;
+import com.thinkmore.forum.mapper.FollowerUsersMapper;
+import com.thinkmore.forum.repository.FollowerUsersRepository;
+import com.thinkmore.forum.repository.UsersRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
+@Service
+<span class="nc" id="L19">@RequiredArgsConstructor</span>
+public class FollowerUsersService {
+    private final FollowerUsersRepository followerUsersRepository;
+    private final UsersRepository usersRepository;
+    private final FollowerUsersMapper followerUsersMapper;
+    private final NotificationService notificationService;
+
+    @Transactional
+    public List&lt;FollowerUsersGetDto&gt; getFollowersByUsername(String username) {
+<span class="nc" id="L28">        Users user = usersRepository.findByUsername(username)</span>
+<span class="nc" id="L29">                .orElseThrow(() -&gt; new UserNotFoundException(&quot;Invalid UserName&quot;));</span>
+<span class="nc" id="L30">        return followerUsersRepository.findAllByFollowedUsersId(user.getId()).stream().map(followerUsersMapper::fromEntity).collect(Collectors.toList());</span>
+    }
+
+    @Transactional
+    public List&lt;FollowerUsersGetDto&gt; getFollowingByUsername(String username) {
+<span class="nc" id="L35">        Users user = usersRepository.findByUsername(username)</span>
+<span class="nc" id="L36">                .orElseThrow(() -&gt; new UserNotFoundException(&quot;Invalid UserName&quot;));</span>
+<span class="nc" id="L37">        return followerUsersRepository.findAllByUsersId(user.getId()).stream().map(followerUsersMapper::fromEntity).collect(Collectors.toList());</span>
+    }
+
+    @Transactional
+    public FollowerUsersGetDto followUsers(UUID myUsersId, String hisUsername) {
+<span class="nc" id="L42">        Users myUser = usersRepository.findById(myUsersId)</span>
+<span class="nc" id="L43">                .orElseThrow(() -&gt; new UserNotFoundException(&quot;Invalid UserID&quot;));</span>
+<span class="nc" id="L44">        Users hisUser = usersRepository.findByUsername(hisUsername)</span>
+<span class="nc" id="L45">                .orElseThrow(() -&gt; new UserNotFoundException(&quot;Invalid UserID&quot;));</span>
+
+<span class="nc" id="L47">        FollowUser followUser = new FollowUser();</span>
+<span class="nc" id="L48">        followUser.setUsers(myUser);</span>
+<span class="nc" id="L49">        followUser.setFollowedUsers(hisUser);</span>
+<span class="nc" id="L50">        followerUsersRepository.save(followUser);</span>
+<span class="nc" id="L51">        notificationService.postNotification(myUser, hisUser, &quot; followed you.&quot;);</span>
+
+<span class="nc" id="L53">        return followerUsersMapper.fromEntity(followUser);</span>
+    }
+
+    @Transactional
+    public void unfollowUsers(UUID userID, String followedUsername) {
+<span class="nc" id="L58">        Users followedUser = usersRepository.findByUsername(followedUsername)</span>
+<span class="nc" id="L59">                .orElseThrow(() -&gt; new UserNotFoundException(&quot;Invalid UserName&quot;));</span>
+<span class="nc" id="L60">        followerUsersRepository.deleteByUsersIdAndFollowedUsersId(userID, followedUser.getId());</span>
+<span class="nc" id="L61">    }</span>
+
+    @Transactional
+    public boolean followStatus(String username, UUID usersId) {
+<span class="nc" id="L65">        Users tampUser = usersRepository.findByUsername(username)</span>
+<span class="nc" id="L66">                .orElseThrow(() -&gt; new UserNotFoundException(&quot;Invalid UserName&quot;));</span>
+
+        boolean status;
+<span class="nc bnc" id="L69" title="All 2 branches missed.">        status = !followerUsersRepository.findByUsersIdAndFollowedUsersId(usersId, tampUser.getId()).isEmpty();</span>
+<span class="nc" id="L70">        return status;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

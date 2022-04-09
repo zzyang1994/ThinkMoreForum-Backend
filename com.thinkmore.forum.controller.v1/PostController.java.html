@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>PostController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">forum</a> &gt; <a href="index.source.html" class="el_package">com.thinkmore.forum.controller.v1</a> &gt; <span class="el_source">PostController.java</span></div><h1>PostController.java</h1><pre class="source lang-java linenums">package com.thinkmore.forum.controller.v1;
+
+import com.thinkmore.forum.dto.post.PostGetDto;
+import com.thinkmore.forum.dto.post.PostMiniPutDto;
+import com.thinkmore.forum.dto.post.PostPostDto;
+import com.thinkmore.forum.service.PostService;
+import com.thinkmore.forum.util.Util;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.UUID;
+
+@RestController
+@RequestMapping(path = &quot;/v1/post&quot;)
+<span class="nc" id="L17">@RequiredArgsConstructor</span>
+public class PostController {
+    private final PostService postService;
+
+    @PostMapping
+    public ResponseEntity&lt;String&gt; postPost(@RequestBody PostPostDto postPostDto) {
+<span class="nc" id="L23">        Util.checkPermission(&quot;makePost&quot;);</span>
+<span class="nc" id="L24">        UUID userId = UUID.fromString(Util.getJwtContext().get(0));</span>
+<span class="nc" id="L25">        String response = postService.postPost(userId, postPostDto);</span>
+<span class="nc" id="L26">        return ResponseEntity.ok(response);</span>
+    }
+
+    @PutMapping(&quot;/{post_id}&quot;)
+    public ResponseEntity&lt;Boolean&gt; editPost(@PathVariable(&quot;post_id&quot;) String post_id, @RequestBody PostMiniPutDto postMiniPutDto) {
+<span class="nc" id="L31">        Util.checkPermission(&quot;postManagement&quot;);</span>
+<span class="nc" id="L32">        UUID postId = UUID.fromString(post_id);</span>
+<span class="nc" id="L33">        UUID usersId = UUID.fromString(Util.getJwtContext().get(0));</span>
+<span class="nc" id="L34">        return ResponseEntity.ok(postService.editPost(postId, usersId, postMiniPutDto));</span>
+    }
+
+    @PutMapping(path = &quot;/{post_id}/visibility&quot;)
+    public ResponseEntity&lt;Boolean&gt; changePostVisibility(@PathVariable(&quot;post_id&quot;) String post_id) {
+<span class="nc" id="L39">        Util.checkPermission(&quot;postManagement&quot;);</span>
+<span class="nc" id="L40">        UUID postId = UUID.fromString(post_id);</span>
+<span class="nc" id="L41">        UUID userId = UUID.fromString(Util.getJwtContext().get(0));</span>
+<span class="nc" id="L42">        Boolean response = postService.changePostVisibility(postId, userId);</span>
+<span class="nc" id="L43">        return ResponseEntity.ok(response);</span>
+    }
+    @GetMapping(path = &quot;/string/{string}&quot;)
+    public ResponseEntity&lt;List&lt;PostGetDto&gt;&gt; getPostByTitleContainingString(@PathVariable(&quot;string&quot;) String string) {
+<span class="nc" id="L47">        List&lt;PostGetDto&gt; response = postService.getPostByTitleContainingString(string);</span>
+<span class="nc" id="L48">        return ResponseEntity.ok(response);</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

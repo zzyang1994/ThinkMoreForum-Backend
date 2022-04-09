@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>PostGetDto.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">forum</a> &gt; <a href="index.source.html" class="el_package">com.thinkmore.forum.dto.post</a> &gt; <span class="el_source">PostGetDto.java</span></div><h1>PostGetDto.java</h1><pre class="source lang-java linenums">package com.thinkmore.forum.dto.post;
+
+import com.thinkmore.forum.dto.category.CategoryMiniGetDto;
+import com.thinkmore.forum.dto.users.UsersMiniGetDto;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.io.Serializable;
+import java.time.OffsetDateTime;
+import java.util.UUID;
+
+<span class="nc bnc" id="L12" title="All 94 branches missed.">@Data</span>
+<span class="nc" id="L13">@NoArgsConstructor</span>
+public class PostGetDto implements Serializable {
+<span class="nc" id="L15">    private UUID id;</span>
+<span class="nc" id="L16">    private UsersMiniGetDto postUsers;</span>
+<span class="nc" id="L17">    private CategoryMiniGetDto category;</span>
+<span class="nc" id="L18">    private String headImgUrl;</span>
+<span class="nc" id="L19">    private String title;</span>
+<span class="nc" id="L20">    private String context;</span>
+<span class="nc" id="L21">    private Integer viewCount;</span>
+<span class="nc" id="L22">    private Integer followCount;</span>
+<span class="nc" id="L23">    private Integer commentCount;</span>
+<span class="nc" id="L24">    private Boolean visibility;</span>
+<span class="nc" id="L25">    private OffsetDateTime createTimestamp;</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

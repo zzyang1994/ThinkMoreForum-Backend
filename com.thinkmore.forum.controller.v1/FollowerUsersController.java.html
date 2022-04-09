@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>FollowerUsersController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">forum</a> &gt; <a href="index.source.html" class="el_package">com.thinkmore.forum.controller.v1</a> &gt; <span class="el_source">FollowerUsersController.java</span></div><h1>FollowerUsersController.java</h1><pre class="source lang-java linenums">package com.thinkmore.forum.controller.v1;
+
+import com.thinkmore.forum.dto.followerUsers.FollowerUsersGetDto;
+import com.thinkmore.forum.service.FollowerUsersService;
+import com.thinkmore.forum.util.Util;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.UUID;
+
+@RestController
+@RequestMapping(path = &quot;/v1/users&quot;)
+<span class="nc" id="L14">@RequiredArgsConstructor</span>
+public class FollowerUsersController {
+    private final FollowerUsersService followerUsersService;
+
+    @GetMapping(path = &quot;/followed_status/{username}&quot;)
+    public ResponseEntity&lt;Boolean&gt; checkFollowedStatus(@PathVariable(&quot;username&quot;) String username) {
+<span class="nc" id="L20">        UUID usersId = UUID.fromString(Util.getJwtContext().get(0));</span>
+<span class="nc" id="L21">        return ResponseEntity.ok(followerUsersService.followStatus(username, usersId));</span>
+    }
+
+    @PostMapping(path = &quot;/follow/{username}&quot;)
+    public ResponseEntity&lt;FollowerUsersGetDto&gt; follow_user(@PathVariable(&quot;username&quot;) String username) {
+<span class="nc" id="L26">        UUID usersId = UUID.fromString(Util.getJwtContext().get(0));</span>
+<span class="nc" id="L27">        return ResponseEntity.ok(followerUsersService.followUsers(usersId, username));</span>
+    }
+
+    @DeleteMapping(path = &quot;/unfollow/{username}&quot;)
+    public ResponseEntity&lt;?&gt; unfollow_user(@PathVariable(&quot;username&quot;) String target_username) {
+<span class="nc" id="L32">        UUID usersId = UUID.fromString(Util.getJwtContext().get(0));</span>
+        try {
+<span class="nc" id="L34">            followerUsersService.unfollowUsers(usersId, target_username);</span>
+<span class="nc" id="L35">            return ResponseEntity.ok().body(&quot;Deleted&quot;);</span>
+<span class="nc" id="L36">        } catch (Exception e) {</span>
+<span class="nc" id="L37">            return ResponseEntity.status(404).body(&quot;Not found&quot;);</span>
+        }
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

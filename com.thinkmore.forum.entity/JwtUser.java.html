@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>JwtUser.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">forum</a> &gt; <a href="index.source.html" class="el_package">com.thinkmore.forum.entity</a> &gt; <span class="el_source">JwtUser.java</span></div><h1>JwtUser.java</h1><pre class="source lang-java linenums">package com.thinkmore.forum.entity;
+
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+
+import java.util.ArrayList;
+import java.util.Set;
+import java.util.UUID;
+
+<span class="nc" id="L13">@RequiredArgsConstructor</span>
+public class JwtUser implements UserDetails {
+
+    private final String username;
+    private final String password;
+
+<span class="nc" id="L19">    @Getter</span>
+<span class="nc" id="L20">    @Setter</span>
+    private UUID id;
+<span class="nc" id="L22">    @Getter</span>
+<span class="nc" id="L23">    @Setter</span>
+    private String roleName;
+<span class="nc" id="L25">    @Getter</span>
+<span class="nc" id="L26">    @Setter</span>
+    private String permission;
+
+<span class="nc" id="L29">    public JwtUser(Users user) {</span>
+<span class="nc" id="L30">        username = user.getUsername();</span>
+<span class="nc" id="L31">        password = user.getPassword();</span>
+
+<span class="nc" id="L33">        id = user.getId();</span>
+<span class="nc" id="L34">        roleName = user.getRole().getRoleName();</span>
+<span class="nc" id="L35">        permission = user.getRole().getPermission();</span>
+<span class="nc" id="L36">    }</span>
+
+<span class="nc" id="L38">    public JwtUser(ArrayList&lt;String&gt; principal) {</span>
+<span class="nc" id="L39">        username = null;</span>
+<span class="nc" id="L40">        password = null;</span>
+
+<span class="nc" id="L42">        id = UUID.fromString(principal.get(0));</span>
+<span class="nc" id="L43">        roleName = principal.get(1);</span>
+<span class="nc" id="L44">        permission = principal.get(2);</span>
+<span class="nc" id="L45">    }</span>
+
+    @Override
+    public Set&lt;? extends GrantedAuthority&gt; getAuthorities() {
+<span class="nc" id="L49">        return null;</span>
+    }
+
+    @Override
+    public String getPassword() {
+<span class="nc" id="L54">        return password;</span>
+    }
+
+    @Override
+    public String getUsername() {
+<span class="nc" id="L59">        return username;</span>
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+<span class="nc" id="L64">        return true;</span>
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+<span class="nc" id="L69">        return true;</span>
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+<span class="nc" id="L74">        return true;</span>
+    }
+
+    @Override
+    public boolean isEnabled() {
+<span class="nc" id="L79">        return true;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

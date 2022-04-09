@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>StaticConfig.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">forum</a> &gt; <a href="index.source.html" class="el_package">com.thinkmore.forum.configuration</a> &gt; <span class="el_source">StaticConfig.java</span></div><h1>StaticConfig.java</h1><pre class="source lang-java linenums">package com.thinkmore.forum.configuration;
+
+<span class="nc" id="L3">public class StaticConfig {</span>
+<span class="nc" id="L4">    public final static String[] ignoreUrl = new String[] {</span>
+            // -- Swagger UI v2
+            &quot;/v2/api-docs&quot;,
+            &quot;/swagger-resources&quot;,
+            &quot;/swagger-resources/**&quot;,
+            &quot;/configuration/ui&quot;,
+            &quot;/configuration/security&quot;,
+            &quot;/swagger-ui.html&quot;,
+            &quot;/webjars/**&quot;,
+            // -- API
+            &quot;/v1/public/**&quot;,
+    };
+
+    // Role
+    public final static String DefaultRole = &quot;general_user&quot;;
+
+    // Email
+    public final static String DecodedKey = &quot;1a53d4469f513e1ae3856fc2c603b8d6&quot;;
+    public final static String Apikey = &quot;bf7429164ac97e5dae68b01c9b5f4db2fdf172b5e843d2c2d8f3f829e9b785c02cd38bda9be56537804f8e5626eeca116989564aa0d603c40355d037f4713c55c2638ef376ce12e5455e4dbfd5cd49cc&quot;;
+    public final static String fromEmail = &quot;jiangjianglovezhou@gmail.com&quot;;
+    public final static String ResetPasswordUrl = &quot;/password-reset?token=&quot;;
+    public final static String ResetPasswordContext = &quot;Please click the link to reset your new password:\n&quot;;
+    public final static String VerifyEmailUrl = &quot;/verify-email?token=&quot;;
+    public final static String VerifyEmailContext = &quot;Please click the link to verify your new email:\n&quot;;
+
+    // Oss
+    public final static String BucketName = &quot;image&quot;;
+
+    // JWT
+    public final static String JwtSecretKey = &quot;https://github.com/Qiming-Liu/ThinkMoreForum-Backend&quot;;
+    public final static String JwtPrefix = &quot;Bearer &quot;;
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>FollowPostService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">forum</a> &gt; <a href="index.source.html" class="el_package">com.thinkmore.forum.service</a> &gt; <span class="el_source">FollowPostService.java</span></div><h1>FollowPostService.java</h1><pre class="source lang-java linenums">package com.thinkmore.forum.service;
+
+import com.thinkmore.forum.dto.followPost.FollowPostGetDto;
+import com.thinkmore.forum.dto.followPost.FollowPostPostDto;
+import com.thinkmore.forum.dto.post.PostMiniGetDto;
+import com.thinkmore.forum.dto.users.UsersMiniGetDto;
+import com.thinkmore.forum.entity.FollowPost;
+import com.thinkmore.forum.entity.Post;
+import com.thinkmore.forum.entity.Users;
+import com.thinkmore.forum.exception.UserNotFoundException;
+import com.thinkmore.forum.mapper.FollowPostMapper;
+import com.thinkmore.forum.mapper.PostMapper;
+import com.thinkmore.forum.mapper.UsersMapper;
+import com.thinkmore.forum.repository.FollowPostRepository;
+import com.thinkmore.forum.repository.PostRepository;
+import com.thinkmore.forum.repository.UsersRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
+@Service
+<span class="nc" id="L27">@RequiredArgsConstructor</span>
+public class FollowPostService {
+
+    private final FollowPostRepository followPostRepository;
+    private final FollowPostMapper followPostMapper;
+
+    private final UsersRepository usersRepository;
+    private final UsersMapper usersMapper;
+
+    private final PostRepository postRepository;
+    private final PostMapper postMapper;
+
+    private final NotificationService notificationService;
+
+    @Transactional
+    public List&lt;FollowPostGetDto&gt; getAllFollowPostsByUserId(UUID userId) {
+<span class="nc" id="L43">        return followPostRepository.findByUsers_IdOrderByCreateTimestampDesc(userId).stream()</span>
+<span class="nc" id="L44">                .map(followPostMapper::fromEntity)</span>
+<span class="nc" id="L45">                .collect(Collectors.toList());</span>
+    }
+
+    @Transactional
+    public List&lt;FollowPostGetDto&gt; getAllFollowPostsByUsername(String username) {
+<span class="nc" id="L50">        Users user = usersRepository.findByUsername(username)</span>
+<span class="nc" id="L51">                .orElseThrow(() -&gt; new UserNotFoundException(&quot;Invalid UserName&quot;));</span>
+<span class="nc" id="L52">        return followPostRepository.findByUsers_IdOrderByCreateTimestampDesc(user.getId()).stream()</span>
+<span class="nc" id="L53">                .map(followPostMapper::fromEntity)</span>
+<span class="nc" id="L54">                .collect(Collectors.toList());</span>
+    }
+
+    @Transactional
+    public Boolean checkUserFollowingState(UUID postId, UUID userId) {
+<span class="nc" id="L59">        Optional&lt;FollowPost&gt; targetFollowPost = followPostRepository.findByPost_IdAndUsers_Id(postId, userId);</span>
+<span class="nc bnc" id="L60" title="All 2 branches missed.">        if (targetFollowPost.isPresent()) {</span>
+<span class="nc" id="L61">            return true;</span>
+        } else {
+<span class="nc" id="L63">            return false;</span>
+        }
+    }
+
+    @Transactional
+    public void postFollowPostToUser(UUID postId, UUID userId) {
+<span class="nc" id="L69">        Users users = usersRepository.findById(userId).get();</span>
+<span class="nc" id="L70">        UsersMiniGetDto usersMiniGetDto = usersMapper.entityToMiniDto(users);</span>
+<span class="nc" id="L71">        Post post = postRepository.findById(postId).get();</span>
+<span class="nc" id="L72">        PostMiniGetDto postMiniGetDto = postMapper.entityToMiniDto(post);</span>
+
+<span class="nc" id="L74">        FollowPostPostDto followPostPostDto = new FollowPostPostDto();</span>
+<span class="nc" id="L75">        followPostPostDto.setUsers(usersMiniGetDto);</span>
+<span class="nc" id="L76">        followPostPostDto.setPost(postMiniGetDto);</span>
+<span class="nc" id="L77">        FollowPost followPost = followPostMapper.toEntity(followPostPostDto);</span>
+<span class="nc" id="L78">        followPostRepository.save(followPost);</span>
+
+<span class="nc" id="L80">        notificationService.postNotification(users, post.getPostUsers(), &quot; followed your post.&quot;);</span>
+
+<span class="nc" id="L82">        Post postToUpdate = postRepository.findById(postId).get();</span>
+<span class="nc" id="L83">        int newFollowCount = (int) followPostRepository.countByPost_Id(postId);</span>
+<span class="nc" id="L84">        postToUpdate.setFollowCount(newFollowCount);</span>
+<span class="nc" id="L85">        postRepository.save(postToUpdate);</span>
+
+<span class="nc" id="L87">    }</span>
+
+    @Transactional
+    public String userUnfollowPost(UUID postId, UUID userId) {
+<span class="nc" id="L91">        long responseValue = followPostRepository.deleteByUsers_IdAndPost_Id(userId, postId);</span>
+<span class="nc bnc" id="L92" title="All 2 branches missed.">        if (responseValue &gt; 0) {</span>
+<span class="nc" id="L93">            Post postToUpdate = postRepository.findById(postId).get();</span>
+<span class="nc" id="L94">            int newFollowCount = (int) followPostRepository.countByPost_Id(postId);</span>
+<span class="nc" id="L95">            postToUpdate.setFollowCount(newFollowCount);</span>
+<span class="nc" id="L96">            postRepository.save(postToUpdate);</span>
+<span class="nc" id="L97">            return &quot;Successfully unfollowed!&quot;;</span>
+        }
+<span class="nc" id="L99">        return &quot;Unfollow failed or you didn't follow this post&quot;;</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

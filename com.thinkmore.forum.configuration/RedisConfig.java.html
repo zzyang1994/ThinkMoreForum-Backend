@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>RedisConfig.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">forum</a> &gt; <a href="index.source.html" class="el_package">com.thinkmore.forum.configuration</a> &gt; <span class="el_source">RedisConfig.java</span></div><h1>RedisConfig.java</h1><pre class="source lang-java linenums">package com.thinkmore.forum.configuration;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
+import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.repository.configuration.EnableRedisRepositories;
+
+@Configuration
+@EnableRedisRepositories
+<span class="nc" id="L14">public class RedisConfig {</span>
+    @Value(&quot;${spring.redis.host}&quot;)
+    private String redisHost;
+
+    @Value(&quot;${spring.redis.port}&quot;)
+    private Integer redisPort;
+
+    @Value(&quot;${spring.redis.password}&quot;)
+    private String redisPassword;
+
+    @Bean
+    public JedisConnectionFactory jedisConnectionFactory() {
+<span class="nc" id="L26">        RedisStandaloneConfiguration redisStandaloneConfiguration = new RedisStandaloneConfiguration();</span>
+<span class="nc" id="L27">        redisStandaloneConfiguration.setHostName(redisHost);</span>
+<span class="nc" id="L28">        redisStandaloneConfiguration.setPort(redisPort);</span>
+<span class="nc" id="L29">        redisStandaloneConfiguration.setPassword(redisPassword);</span>
+<span class="nc" id="L30">        return new JedisConnectionFactory(redisStandaloneConfiguration);</span>
+    }
+
+    @Bean
+    public RedisTemplate&lt;?, ?&gt; redisTemplate(RedisConnectionFactory redisConnectionFactory) {
+<span class="nc" id="L35">        RedisTemplate&lt;byte[], byte[]&gt; template = new RedisTemplate&lt;&gt;();</span>
+<span class="nc" id="L36">        template.setConnectionFactory(redisConnectionFactory);</span>
+<span class="nc" id="L37">        return template;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>
